@@ -1,4 +1,4 @@
-/*! hotel-datepicker 3.3.0 - Copyright 2017 Benito Lopez (http://lopezb.com) - https://github.com/benitolopez/hotel-datepicker - MIT */
+/*! hotel-datepicker 3.4.2 - Copyright 2017 Benito Lopez (http://lopezb.com) - https://github.com/benitolopez/hotel-datepicker - MIT */
 var HotelDatepicker = (function () {
 'use strict';
 
@@ -27,6 +27,7 @@ var HotelDatepicker = function HotelDatepicker(input, options) {
 	this.disabledDates = opts.disabledDates || [];
 	this.noCheckInDates = opts.noCheckInDates || [];
 	this.noCheckOutDates = opts.noCheckOutDates || [];
+	this.disabledDaysOfWeek = opts.disabledDaysOfWeek || [];
 	this.enableCheckout = opts.enableCheckout || false;
 	this.container = opts.container || '';
 	this.animationSpeed = opts.animationSpeed || '.5s';
@@ -517,6 +518,7 @@ HotelDatepicker.prototype.createMonthDomString = function createMonthDomString (
 			var isDisabled = false;
 			var isNoCheckIn = false;
 			var isNoCheckOut = false;
+			var isDayOfWeekDisabled = false;
 
                 // Check if the day is one of the days passed in the
                 // (optional) disabledDates option. And set valid to
@@ -533,6 +535,13 @@ HotelDatepicker.prototype.createMonthDomString = function createMonthDomString (
 						flag++;
 					} else {
 						flag = 0;
+					}
+				}
+
+				if (this$1.disabledDaysOfWeek.length > 0) {
+					if (this$1.disabledDaysOfWeek.indexOf(fecha.format(_day$2.time, 'dddd')) > -1) {
+						_day$2.valid = false;
+						isDayOfWeekDisabled = true;
 					}
 				}
 
@@ -556,7 +565,8 @@ HotelDatepicker.prototype.createMonthDomString = function createMonthDomString (
 				isDisabled ? 'datepicker__month-day--disabled' : '',
 				isDisabled && this$1.enableCheckout && (flag === 1) ? 'datepicker__month-day--checkout-enabled' : '',
 				isNoCheckIn ? 'datepicker__month-day--no-check-in' : '',
-				isNoCheckOut ? 'datepicker__month-day--no-check-out' : ''
+				isNoCheckOut ? 'datepicker__month-day--no-check-out' : '',
+				isDayOfWeekDisabled ? 'datepicker__month-day--day-of-week-disabled' : ''
 			];
 
 			// Add a title for those days where the checkin or checkout is disabled
@@ -962,7 +972,7 @@ HotelDatepicker.prototype.isValidDate = function isValidDate (time) {
         // Update valid dates during the selection
 	if (this.start && !this.end) {
             // Check maximum/minimum days
-		if ((this.maxDays > 0 && this.countDays(time, this.start) > this.maxDays) || (this.minDays > 0 && this.countDays(time, this.start) < this.minDays)) {
+		if ((this.maxDays > 0 && this.countDays(time, this.start) > this.maxDays) || (this.minDays > 0 && this.countDays(time, this.start) > 1 && this.countDays(time, this.start) < this.minDays)) {
 			return false;
 		}
 
