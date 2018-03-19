@@ -161,7 +161,7 @@
 }
 
 .datepicker__month-day--selected {
-  background-color: rgba(116, 107, 253, 0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   color: #fff;
 }
 
@@ -170,7 +170,7 @@
 }
 
 .datepicker__month-day--hovering {
-  background-color: rgba(116, 107, 253, 0.3);
+  background-color: rgba(0, 0, 0, 0.3);
   color: #fff;
 }
 
@@ -181,7 +181,7 @@
 
 .datepicker__month-day--first-day-selected,
 .datepicker__month-day--last-day-selected {
-  background-color: #746bfd;
+  background-color: black;
   color: #fff;
 }
 
@@ -204,7 +204,7 @@
 }
 
 .datepicker__month-button:hover {
-  background-color: #746bfd;
+  background-color: black;
   color: #fff;
 }
 
@@ -249,7 +249,7 @@
   transition-property: color, background-color, border-color;
   -webkit-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
           transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  background-color: #746bfd;
+  background-color: black;
   border-radius: 4px;
   border: none;
   -webkit-box-shadow: none;

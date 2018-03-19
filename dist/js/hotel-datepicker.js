@@ -13,13 +13,15 @@ var HotelDatepicker = function HotelDatepicker(input, options) {
         // Set default values
 	var opts = options || {};
 
-	this.format = opts.format || 'YYYY-MM-DD';
+	this.format = opts.format || 'DD-MM-YYYY';
 	this.infoFormat = opts.infoFormat || this.format;
 	this.separator = opts.separator || ' - ';
 	this.startOfWeek = opts.startOfWeek || 'sunday'; // Or monday
-	this.startDate = opts.startDate || new Date();
-	this.endDate = opts.endDate || false;
-	this.minNights = opts.minNights || 1;
+	this.startDate = opts.startDate || new Date('2017-01-01T00:00:00+05:30');
+	this.endDate = opts.endDate || new Date();
+	this.endHour = opts.endTime ? opts.endTime.split(':')[0] : fecha.format(new Date(), 'HH');
+	this.endMin = opts.endTime ? opts.endTime.split(':')[1] : fecha.format(new Date(), 'mm');
+	this.minNights = opts.minNights || 0;
 	this.maxNights = opts.maxNights || 0;
 	this.selectForward = opts.selectForward || false;
 	this.disabledDates = opts.disabledDates || [];
@@ -29,13 +31,13 @@ var HotelDatepicker = function HotelDatepicker(input, options) {
 	this.container = opts.container || '';
 	this.animationSpeed = opts.animationSpeed || '.5s';
 	this.hoveringTooltip = opts.hoveringTooltip || true; // Or a function
-	this.autoClose = opts.autoClose === undefined ? true : opts.autoClose;
-	this.showTopbar = opts.showTopbar === undefined ? true : opts.showTopbar;
+	this.autoClose = opts.autoClose === undefined ? false : opts.autoClose;
+	this.showTopbar = opts.showTopbar === undefined ? false : opts.showTopbar;
 	this.moveBothMonths = opts.moveBothMonths || false;
 	this.i18n = opts.i18n || {
-		selected: 'Your stay:',
-		night: 'Night',
-		nights: 'Nights',
+		selected: 'Date range:',
+		night: 'Day',
+		nights: 'Days',
 		button: 'Close',
 		'checkin-disabled': 'Check-in disabled',
 		'checkout-disabled': 'Check-out disabled',
@@ -43,20 +45,26 @@ var HotelDatepicker = function HotelDatepicker(input, options) {
 		'day-names': ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
 		'month-names-short': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
 		'month-names': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-		'error-more': 'Date range should not be more than 1 night',
-		'error-more-plural': 'Date range should not be more than %d nights',
-		'error-less': 'Date range should not be less than 1 night',
-		'error-less-plural': 'Date range should not be less than %d nights',
-		'info-more': 'Please select a date range longer than 1 night',
-		'info-more-plural': 'Please select a date range longer than %d nights',
-		'info-range': 'Please select a date range between %d and %d nights',
+		'error-more': 'Date range should not be more than 1 day',
+		'error-more-plural': 'Date range should not be more than %d days',
+		'error-less': 'Date range should not be less than 1 day',
+		'error-less-plural': 'Date range should not be less than %d days',
+		'info-more': 'Please select a date range longer than 1 day',
+		'info-more-plural': 'Please select a date range longer than %d days',
+		'info-range': 'Please select a date range between %d and %d days',
 		'info-default': 'Please select a date range'
 	};
 	this.getValue = opts.getValue || function () {
 		return input.value;
 	};
 	this.setValue = opts.setValue || function (s) {
-		input.value = s;
+		var startHour = document.getElementById(input.id + 'StartHourValue').value;
+		var startMin = document.getElementById(input.id + 'StartMinValue').value;
+		var endHour = document.getElementById(input.id + 'EndHourValue').value;
+		var endMin = document.getElementById(input.id + 'EndMinValue').value;
+		var dateComponents = s.split(this.separator);
+		var dateTimeString = dateComponents[0] + ' ' + this.pad(startHour, 2) + ':' + this.pad(startMin, 2) + this.separator + dateComponents[1] + ' ' + this.pad(endHour, 2) + ':' + this.pad(endMin, 2);
+		input.value = dateTimeString;
 	};
 	this.onDayClick = opts.onDayClick === undefined ? false : opts.onDayClick;
 	this.onOpenDatepicker = opts.onOpenDatepicker === undefined ? false : opts.onOpenDatepicker;
@@ -229,6 +237,31 @@ HotelDatepicker.prototype.init = function init () {
         // Create the DOM elements
 	this.createDom();
 
+	// Adding time listeners
+	document.getElementById(this.input.id + 'StartHourValue').oninput = (function (that) {
+		return function () {
+			that.onTimeChanged(that);
+		};
+	})(this);
+
+	document.getElementById(this.input.id + 'StartMinValue').oninput = (function (that) {
+		return function () {
+			that.onTimeChanged(that);
+		};
+	})(this);
+
+	document.getElementById(this.input.id + 'EndHourValue').oninput = (function (that) {
+		return function () {
+			that.onTimeChanged(that);
+		};
+	})(this);
+
+	document.getElementById(this.input.id + 'EndMinValue').oninput = (function (that) {
+		return function () {
+			that.onTimeChanged(that);
+		};
+	})(this);
+
         // Set default time
 	var defaultTime = new Date();
 
@@ -347,6 +380,18 @@ HotelDatepicker.prototype.createDatepickerDomString = function createDatepickerD
 	for (var i = 1; i <= 2; i++) {
 		html += '<table id="' + this$1.getMonthTableId(i) + '" class="datepicker__month datepicker__month--month' + i + '"><thead><tr class="datepicker__month-caption"><th><span class="datepicker__month-button datepicker__month-button--prev" month="' + i + '">&lt;</span></th><th colspan="5" class="datepicker__month-name"></th><th><span class="datepicker__month-button datepicker__month-button--next" month="' + i + '">&gt;</span></th></tr><tr class="datepicker__week-days">' + this$1.getWeekDayNames(i) + '</tr></thead><tbody></tbody></table>';
 	}
+
+	// Time picker
+	html += '<div style="width:100%;display: inline-flex; margin-top: 10px;">' 			+
+				'<div style="flex-basis: 50%; text-align: center;">'+
+					'Start time: <input id="' + this.input.id + 'StartHourValue" type="number" value="00" min="00" max="23" style="width:50px; padding: 5px 5px;""/>' +
+								' : <input id="' + this.input.id + 'StartMinValue" type="number" value="00" min="00" max="59" style="width:50px; padding: 5px 5px;"/>' +
+				'</div>' 										+
+				'<div style="flex-basis: 50%; text-align: center;">' +
+					'End time: <input id="' + this.input.id + 'EndHourValue" type="number" min="00" max="23" value="' + this.endHour + '" style="width:50px; padding: 5px 5px;"/>' +
+								' : <input id="' + this.input.id + 'EndMinValue" type="number" min="00" max="59" value="' + this.endMin + '" style="width:50px; padding: 5px 5px;"/>' +
+				'</div>' 										+
+			'</div>';
 
 	html += '</div>';
 
@@ -784,6 +829,7 @@ HotelDatepicker.prototype.showSelectedInfo = function showSelectedInfo () {
 		// If both dates are set, set the value of our input
 		if (this.start && this.end) {
 			var dateRangeValue = this.getDateString(new Date(this.start)) + this.separator + this.getDateString(new Date(this.end));
+			this.dateRange = dateRangeValue;
 
 			// Set input value
 			this.setValue(dateRangeValue, this.getDateString(new Date(this.start)), this.getDateString(new Date(this.end)));
@@ -1580,6 +1626,20 @@ HotelDatepicker.prototype.getNights = function getNights () {
 	}
 
 	return count;
+};
+
+HotelDatepicker.prototype.onTimeChanged = function onTimeChanged (_this) {
+	if (_this.dateRange !== undefined) {
+		_this.setValue(_this.dateRange);
+	}
+};
+
+HotelDatepicker.prototype.pad = function pad (num, size) {
+	var s = String(num);
+	while (s.length < size) {
+		s = '0' + s;
+	}
+	return s;
 };
 
 HotelDatepicker.prototype.destroy = function destroy () {
