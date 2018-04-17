@@ -162,4 +162,8 @@ $RECYCLE.BIN/
 .sass-cache/
 *.css.map
 
+
+# Misc
+package-lock.json
+
 # End of https://www.gitignore.io/api/node,sublimetext,vim,linux,macos,windows,sass
